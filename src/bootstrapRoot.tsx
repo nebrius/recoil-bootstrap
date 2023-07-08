@@ -3,19 +3,15 @@
 'use client';
 
 import type { PropsWithChildren } from 'react';
-import React, { useContext } from 'react';
-import type { RecoilState } from 'recoil';
-import {
-  useGotoRecoilSnapshot,
-  useRecoilSnapshot,
-  useRecoilStateLoadable,
-} from 'recoil';
+import React, { useContext, useEffect, useRef } from 'react';
+import { useRecoilCallback, useRecoilStateLoadable } from 'recoil';
 
+import type { RootAtom } from './util';
 import { BootstrapRootsInScopeContext } from './util';
 
 interface LocalizedStateProps<BootstrapData> {
   bootstrapData: BootstrapData;
-  rootAtom: RecoilState<BootstrapData>;
+  rootAtom: RootAtom<BootstrapData>;
 }
 
 /**
@@ -46,18 +42,41 @@ export function BootstrapRoot<BootstrapData>({
   // We use snapshots to set the root atom value instead of the typical
   // `useRecoilState` setter because the latter is asynchronous and would result
   // in bootstrap data not being available for the first render.
-  const snapshot = useRecoilSnapshot();
-  const gotoRecoilSnapshot = useGotoRecoilSnapshot();
+  const setBootstrapData = useRecoilCallback(
+    ({ snapshot, gotoSnapshot }) =>
+      () => {
+        gotoSnapshot(
+          snapshot.map(({ set }) => {
+            set(rootAtom, bootstrapData);
+          }),
+        );
+      },
+    [rootAtom],
+  );
+
+  const resetBootstrapData = useRecoilCallback(
+    ({ reset, refresh }) =>
+      () => {
+        reset(rootAtom);
+        refresh(rootAtom);
+      },
+    [rootAtom],
+  );
+
   if (bootstrapDataLoadable.state === 'loading') {
-    gotoRecoilSnapshot(
-      snapshot.map(({ set }) => {
-        set(rootAtom, bootstrapData);
-      }),
-    );
+    setBootstrapData();
   }
 
-  // TODO: add some logic that puts the root atom back in a loadable state on
-  // component unmount here.
+  const cleanup = useRef(() => {
+    // Do nothing since we set this on the next line
+  });
+  cleanup.current = resetBootstrapData;
+  useEffect(
+    () => () => {
+      cleanup.current();
+    },
+    [cleanup],
+  );
 
   return (
     <BootstrapRootsInScopeContext.Provider

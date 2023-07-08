@@ -18,3 +18,11 @@ export type BootstrappedRecoilAtom<AtomValue, BootstrapData> =
 export const BootstrapRootsInScopeContext = createContext<
   Array<RecoilValue<unknown>>
 >([]);
+
+export const attachedSelectorsSymbol = Symbol('attachedSelectors');
+
+export type RootAtom<BootstrapData> = RecoilState<BootstrapData> & {
+  [attachedSelectorsSymbol]: Array<
+    BootstrappedRecoilAtom<unknown, BootstrapData>
+  >;
+};

@@ -1,8 +1,8 @@
-import type { AtomOptions, RecoilValue } from 'recoil';
-import { atom, selector } from 'recoil';
+import type { AtomOptions } from 'recoil';
+import { selector } from 'recoil';
 
-import type { BootstrappedRecoilAtom } from './util';
-import { rootAtomSymbol } from './util';
+import type { BootstrappedRecoilAtom, RootAtom } from './util';
+import { attachedSelectorsSymbol, rootAtomSymbol } from './util';
 
 type BootstrappedAtomOptions<AtomValue, BootstrapData> = Omit<
   AtomOptions<AtomValue>,
@@ -26,45 +26,39 @@ type BootstrappedAtomOptions<AtomValue, BootstrapData> = Omit<
  *  function to replace `default`.
  * @param options.initialValue A function to initialize the bootstrapped atom
  *  with. This function is called at runtime with all of the bootstrap data
- *  passed to BoostrapRoot. The atom's value is then set to the value returned
+ *  passed to BootstrapRoot. The atom's value is then set to the value returned
  *  from this function.
  * @returns The bootstrapped atom that can then be passed to
  *  bootstrappedAtomValueHook to create a hook for safely accessing this data.
  *  The returned atom is a normal off-the-shelf Recoil atom, and can be used
  *  accordingly.
  */
-export function bootstrappedAtom<AtomValue, BootstrapData>(
-  rootAtom: RecoilValue<BootstrapData>,
+export function bootstrappedSelector<SelectorValue, BootstrapData>(
+  rootAtom: RootAtom<BootstrapData>,
   {
     initialValue,
-    // We pull the key out so we can compute a derived key name for the selector
-    key,
     ...options
-  }: BootstrappedAtomOptions<AtomValue, BootstrapData>,
+  }: BootstrappedAtomOptions<SelectorValue, BootstrapData>,
 ) {
   // Extra checking for vanilla JS users. This isn't possible in TypeScript
-  if ('default' in options) {
+  if ('get' in options) {
     throw new Error(
-      'The "default" prop is not allowed in bootstrapped atoms. Use "initialValue" instead',
+      'The "get" prop is not allowed in bootstrapped selectors. Use "initialValue" instead',
     );
   }
-  const newAtom = atom({
+  const newAtom = selector({
     ...options,
-    key,
-    // We set the default to a selector so that we can grab the bootstrap data
-    // from its root atom, which is initialized in a <BootstrapRoot> component
-    default: selector({
-      key: `${key}:atomInitializer`,
-      // TODO: do we need to guard against the first-run case when the rootAtom
-      // is created but in a loadable state?
-      get: ({ get }) => initialValue(get(rootAtom)),
-    }),
+    get: ({ get }) => {
+      console.log(get(rootAtom));
+      return initialValue(get(rootAtom));
+    },
     // We have to do an `as` cast here because the rootAtomSymbol property is
     // currently missing. Technically this is a gap in typing (which I call a
     // "type hole"), but we set it correctly in the next line anyways.
-  }) as BootstrappedRecoilAtom<AtomValue, BootstrapData>;
+  }) as BootstrappedRecoilAtom<SelectorValue, BootstrapData>;
 
   newAtom[rootAtomSymbol] = rootAtom;
+  rootAtom[attachedSelectorsSymbol].push(newAtom);
 
   return newAtom;
 }
