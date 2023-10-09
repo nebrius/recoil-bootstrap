@@ -1,5 +1,9 @@
 # Changelog
 
+## 1.0.3 (10/09/2023)
+
+- Added warning in README not to use this project.
+
 ## 1.0.2 (07/08/2023)
 
 - Fixed bug where bootstrapped atoms can be accessed outside of their bootstrap roots when still accessed inside of the Recoil root.
