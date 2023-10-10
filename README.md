@@ -1,6 +1,6 @@
 # Recoil Bootstrap
 
-**Do not use this library** Unfortunately it seems that Recoil has been abandoned by Meta. The lead maintainer was laid off in early 2023, and there have been very few commits and no responses in issue tracker since then. Even more unfortunate for this library: I discovered a bug that stops this library dead in its tracks: https://github.com/facebookexperimental/Recoil/issues/2256. Until Meta restaffs the Recoil project and fixes this bug, this library is not usable in practice.
+**Do not use this library** Unfortunately it seems that Recoil has been abandoned by Meta. The lead maintainer was laid off in early 2023, and there have been very few commits and no responses in issue tracker since then. Even more unfortunate for this library: I discovered a bug that stops this library dead in its tracks: https://github.com/facebookexperimental/Recoil/issues/2256. Until Meta restaffs the Recoil project and fixes this bug, this library is not usable in practice. In the mean time, check out a newer library I created called [react-strapped](https://github.com/nebrius/react-strapped) that implements many of the concepts in this library in a state management neutral way.
 
 <p align="center">
   <img alt="version" src="https://img.shields.io/npm/v/recoil-bootstrap" />
